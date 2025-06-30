@@ -9,7 +9,161 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      achievements: {
+        Row: {
+          created_at: string | null
+          description: string
+          icon: string | null
+          id: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          icon?: string | null
+          id?: string
+          name: string
+          requirement_type: string
+          requirement_value: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          icon?: string | null
+          id?: string
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          email: string | null
+          full_name: string | null
+          id: string
+          role: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          role?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      quiz_sessions: {
+        Row: {
+          category: string | null
+          completed_at: string | null
+          correct_answers: number
+          id: string
+          time_spent: number
+          total_questions: number
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          completed_at?: string | null
+          correct_answers: number
+          id?: string
+          time_spent: number
+          total_questions: number
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          completed_at?: string | null
+          correct_answers?: number
+          id?: string
+          time_spent?: number
+          total_questions?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_progress: {
+        Row: {
+          category: string
+          correct_answers: number | null
+          created_at: string | null
+          id: string
+          last_quiz_date: string | null
+          questions_answered: number | null
+          total_time_spent: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          correct_answers?: number | null
+          created_at?: string | null
+          id?: string
+          last_quiz_date?: string | null
+          questions_answered?: number | null
+          total_time_spent?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          correct_answers?: number | null
+          created_at?: string | null
+          id?: string
+          last_quiz_date?: string | null
+          questions_answered?: number | null
+          total_time_spent?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

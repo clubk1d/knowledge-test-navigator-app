@@ -1,13 +1,17 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Settings, Play, Trophy, BookOpen } from 'lucide-react';
+import { Settings, Play, Trophy, BookOpen, LogOut, User, BarChart3 } from 'lucide-react';
 import QuestionCard from '@/components/QuestionCard';
 import AdminDashboard from '@/components/AdminDashboard';
+import AuthForm from '@/components/AuthForm';
+import UserProgress from '@/components/UserProgress';
 import { Question, QuizSession } from '@/types/quiz';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuizProgress } from '@/hooks/useQuizProgress';
 
 // Sample questions data
 const sampleQuestions: Question[] = [
@@ -50,9 +54,57 @@ const sampleQuestions: Question[] = [
 ];
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'admin'>('menu');
+  const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'admin' | 'progress'>('menu');
   const [questions, setQuestions] = useState<Question[]>(sampleQuestions);
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
+  const { user, loading, signOut, isAdmin } = useAuth();
+  const { updateProgress } = useQuizProgress();
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth form if user is not logged in
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto py-12">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
+              <BookOpen className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-5xl font-bold text-gray-900 mb-4">
+              Driving Test Quiz
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+              Master your driving knowledge with our comprehensive true/false quiz system. 
+              Practice with categorized questions and track your progress.
+            </p>
+            
+            {/* Filipino Pride */}
+            <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 mb-8 max-w-md mx-auto">
+              <p className="text-sm font-medium text-gray-800 flex items-center justify-center space-x-2">
+                <span>🇵🇭</span>
+                <span>Proudly made by a Filipino</span>
+                <span>🇵🇭</span>
+              </p>
+            </div>
+          </div>
+
+          <AuthForm />
+        </div>
+      </div>
+    );
+  }
 
   const startQuiz = (category?: string, questionCount?: number) => {
     let quizQuestions = [...questions];
@@ -82,6 +134,9 @@ const Index = () => {
   };
 
   const endQuiz = () => {
+    if (quizSession) {
+      updateProgress(quizSession);
+    }
     setQuizSession(null);
     setCurrentView('menu');
   };
@@ -98,6 +153,27 @@ const Index = () => {
         setQuestions={setQuestions}
         onBack={() => setCurrentView('menu')}
       />
+    );
+  }
+
+  if (currentView === 'progress') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-between mb-8">
+            <Button 
+              variant="outline" 
+              onClick={() => setCurrentView('menu')}
+              className="hover:bg-blue-50"
+            >
+              ← Back to Menu
+            </Button>
+            <h1 className="text-3xl font-bold text-gray-900">Your Progress</h1>
+            <div></div>
+          </div>
+          <UserProgress />
+        </div>
+      </div>
     );
   }
 
@@ -145,30 +221,48 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-12 pt-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
-            <BookOpen className="w-10 h-10 text-white" />
+        {/* Header with User Info */}
+        <div className="flex items-center justify-between mb-8 pt-4">
+          <div className="flex items-center space-x-4">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-blue-600 rounded-full">
+              <BookOpen className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Driving Test Quiz</h1>
+              <p className="text-gray-600">Welcome back, {user.email}!</p>
+            </div>
           </div>
-          <h1 className="text-5xl font-bold text-gray-900 mb-4">
-            Driving Test Quiz
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Master your driving knowledge with our comprehensive true/false quiz system. 
-            Practice with categorized questions or challenge yourself with random sets.
-          </p>
-        </div>
-
-        {/* Admin Access */}
-        <div className="flex justify-end mb-8">
-          <Button 
-            variant="outline" 
-            onClick={() => setCurrentView('admin')}
-            className="hover:bg-gray-50"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Admin Dashboard
-          </Button>
+          
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setCurrentView('progress')}
+              className="hover:bg-blue-50"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Progress
+            </Button>
+            
+            {isAdmin && (
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentView('admin')}
+                className="hover:bg-gray-50"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            )}
+            
+            <Button 
+              variant="outline" 
+              onClick={signOut}
+              className="hover:bg-red-50 hover:border-red-200"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
         </div>
 
         {/* Quiz Options */}
@@ -258,7 +352,7 @@ const Index = () => {
         </div>
 
         {/* Stats Section */}
-        <Card className="bg-white/50 backdrop-blur-sm">
+        <Card className="bg-white/50 backdrop-blur-sm mb-8">
           <CardContent className="py-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
               <div>
@@ -276,6 +370,15 @@ const Index = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Filipino Pride Footer */}
+        <div className="text-center py-8 border-t border-white/20">
+          <p className="text-gray-600 flex items-center justify-center space-x-2">
+            <span>🇵🇭</span>
+            <span>Proudly made by a Filipino</span>
+            <span>🇵🇭</span>
+          </p>
+        </div>
       </div>
     </div>
   );
