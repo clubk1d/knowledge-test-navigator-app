@@ -1,7 +1,7 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { useEmailService } from '@/hooks/useEmailService';
 
 interface AuthContextType {
   user: User | null;
@@ -29,6 +29,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { sendWelcomeEmail } = useEmailService();
 
   useEffect(() => {
     // Set up auth state listener
@@ -76,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -86,14 +87,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     });
+
+    // Send welcome email after successful signup
+    if (!error && data.user) {
+      setTimeout(async () => {
+        try {
+          await sendWelcomeEmail(email, fullName);
+        } catch (emailError) {
+          console.error('Failed to send welcome email:', emailError);
+          // Don't throw error - signup was successful, email is just a bonus
+        }
+      }, 1000);
+    }
+
     return { error };
   };
 
   const resetPassword = async (email: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
+    // We'll handle this with our custom email system in PasswordRecovery component
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectUrl,
+      redirectTo: `${window.location.origin}/`,
     });
     return { error };
   };

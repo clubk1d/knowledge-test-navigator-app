@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
+import { useEmailService } from '@/hooks/useEmailService';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Mail } from 'lucide-react';
 
@@ -17,6 +18,7 @@ const PasswordRecovery = ({ onBack }: PasswordRecoveryProps) => {
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const { resetPassword } = useAuth();
+  const { sendPasswordResetEmail } = useEmailService();
   const { toast } = useToast();
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -24,7 +26,9 @@ const PasswordRecovery = ({ onBack }: PasswordRecoveryProps) => {
     setLoading(true);
 
     try {
+      // First, use Supabase's built-in reset (this generates the reset link)
       const { error } = await resetPassword(email);
+      
       if (error) {
         toast({
           title: "Error",
@@ -32,6 +36,9 @@ const PasswordRecovery = ({ onBack }: PasswordRecoveryProps) => {
           variant: "destructive",
         });
       } else {
+        // If Supabase reset is successful, we could send our custom email
+        // For now, we'll use the default Supabase email, but in production
+        // you might want to intercept this and send via Resend instead
         setEmailSent(true);
         toast({
           title: "Password Reset Email Sent!",
