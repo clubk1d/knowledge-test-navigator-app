@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Settings, Play, Trophy, BookOpen, LogOut, User, BarChart3 } from 'lucide-react';
+import { Settings, Play, Trophy, BookOpen, LogOut, User, BarChart3, Coffee } from 'lucide-react';
 import QuestionCard from '@/components/QuestionCard';
 import AdminDashboard from '@/components/AdminDashboard';
 import AuthForm from '@/components/AuthForm';
@@ -234,6 +233,15 @@ const Index = () => {
           </div>
           
           <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => window.open('https://www.paypal.com/paypalme/yourpaypalhandle', '_blank')}
+              className="hover:bg-yellow-50 border-yellow-300 text-yellow-700"
+            >
+              <Coffee className="w-4 h-4 mr-2" />
+              Buy me a coffee
+            </Button>
+            
             <Button 
               variant="outline" 
               onClick={() => setCurrentView('progress')}
