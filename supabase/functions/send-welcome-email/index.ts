@@ -91,7 +91,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "Driving Quiz App <noreply@resend.dev>",
+      from: "Driving Quiz App <noreply@wyndrive.com>",
       to: [email],
       subject: "Welcome to Driving Quiz App! 🚗",
       html: emailHtml,
