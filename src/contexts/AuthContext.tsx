@@ -30,12 +30,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const { sendWelcomeEmail } = useEmailService();
+  const { sendWelcomeEmail, sendPasswordResetEmail } = useEmailService();
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth event:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -105,12 +106,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (email: string) => {
-    // Generate the reset token but don't send the default Supabase email
-    // We'll handle email sending separately via Resend
-    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/`,
-    });
-    return { data, error };
+    try {
+      // Generate reset token via admin API (this won't send Supabase's email)
+      const { data, error } = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email: email,
+      });
+
+      if (error) {
+        console.error('Error generating reset link:', error);
+        return { data: null, error };
+      }
+
+      // Extract the token from the generated link
+      const url = new URL(data.properties.action_link);
+      const token = url.searchParams.get('token');
+      const type = url.searchParams.get('type');
+      
+      if (!token) {
+        return { data: null, error: { message: 'Failed to generate reset token' } };
+      }
+
+      // Create our custom reset link
+      const resetLink = `${window.location.origin}/?access_token=${token}&type=${type}&token_hash=${token}`;
+      
+      // Send our custom email via Resend
+      const emailResult = await sendPasswordResetEmail(email, resetLink);
+      
+      if (!emailResult.success) {
+        return { data: null, error: { message: emailResult.error } };
+      }
+
+      return { data: { success: true }, error: null };
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      return { data: null, error };
+    }
   };
 
   const signOut = async () => {

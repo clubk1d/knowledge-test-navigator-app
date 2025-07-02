@@ -66,19 +66,42 @@ const Index = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessToken = urlParams.get('access_token');
-    const refreshToken = urlParams.get('refresh_token');
     const type = urlParams.get('type');
+    const tokenHash = urlParams.get('token_hash');
 
-    if (type === 'recovery' && accessToken && refreshToken) {
-      // Set the session with the tokens from the URL
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      }).then(() => {
-        setIsPasswordReset(true);
-        setCurrentView('password-reset');
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
+    console.log('URL params:', { accessToken, type, tokenHash });
+
+    if (type === 'recovery' && accessToken) {
+      console.log('Setting password reset session with token:', accessToken);
+      
+      // Verify and set the session with the recovery token
+      supabase.auth.verifyOtp({
+        token_hash: tokenHash || accessToken,
+        type: 'recovery'
+      }).then(({ data, error }) => {
+        console.log('Verify OTP result:', { data, error });
+        
+        if (!error && data.session) {
+          console.log('Password reset session verified successfully');
+          setIsPasswordReset(true);
+          setCurrentView('password-reset');
+          // Clean up URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          console.error('Failed to verify password reset token:', error);
+          // Try alternative method
+          supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: accessToken, // Use access token as fallback
+          }).then(() => {
+            setIsPasswordReset(true);
+            setCurrentView('password-reset');
+            // Clean up URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }).catch((setSessionError) => {
+            console.error('Failed to set session:', setSessionError);
+          });
+        }
       });
     }
   }, []);
