@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -107,31 +106,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string) => {
     try {
-      // Generate reset token via admin API (this won't send Supabase's email)
-      const { data, error } = await supabase.auth.admin.generateLink({
-        type: 'recovery',
-        email: email,
+      // Call our edge function to generate the reset link
+      const { data, error } = await supabase.functions.invoke('generate-reset-link', {
+        body: { email }
       });
 
       if (error) {
-        console.error('Error generating reset link:', error);
+        console.error('Error calling generate-reset-link function:', error);
         return { data: null, error };
       }
 
-      // Extract the token from the generated link
-      const url = new URL(data.properties.action_link);
-      const token = url.searchParams.get('token');
-      const type = url.searchParams.get('type');
-      
-      if (!token) {
-        return { data: null, error: { message: 'Failed to generate reset token' } };
+      if (!data.success) {
+        return { data: null, error: { message: data.error } };
       }
 
-      // Create our custom reset link
-      const resetLink = `${window.location.origin}/?access_token=${token}&type=${type}&token_hash=${token}`;
-      
       // Send our custom email via Resend
-      const emailResult = await sendPasswordResetEmail(email, resetLink);
+      const emailResult = await sendPasswordResetEmail(email, data.resetLink);
       
       if (!emailResult.success) {
         return { data: null, error: { message: emailResult.error } };
