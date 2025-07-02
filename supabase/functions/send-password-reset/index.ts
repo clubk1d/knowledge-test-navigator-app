@@ -78,7 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     const emailResponse = await resend.emails.send({
-      from: "Driving Quiz App <noreply@resend.dev>",
+      from: "Driving Quiz App <noreply@yourdomain.com>", // Update this to your verified domain
       to: [email],
       subject: "Reset Your Password - Driving Quiz App",
       html: emailHtml,

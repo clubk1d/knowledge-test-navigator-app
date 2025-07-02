@@ -26,8 +26,10 @@ const PasswordRecovery = ({ onBack }: PasswordRecoveryProps) => {
     setLoading(true);
 
     try {
-      // First, use Supabase's built-in reset (this generates the reset link)
-      const { error } = await resetPassword(email);
+      // Generate the reset link using Supabase's resetPasswordForEmail
+      // but don't send their email - we'll send our own via Resend
+      const redirectUrl = `${window.location.origin}/`;
+      const { data, error } = await resetPassword(email);
       
       if (error) {
         toast({
@@ -36,14 +38,22 @@ const PasswordRecovery = ({ onBack }: PasswordRecoveryProps) => {
           variant: "destructive",
         });
       } else {
-        // If Supabase reset is successful, we could send our custom email
-        // For now, we'll use the default Supabase email, but in production
-        // you might want to intercept this and send via Resend instead
-        setEmailSent(true);
-        toast({
-          title: "Password Reset Email Sent!",
-          description: "Check your email for password reset instructions.",
-        });
+        // Now send our custom password reset email via Resend
+        const emailResult = await sendPasswordResetEmail(email, redirectUrl);
+        
+        if (emailResult.success) {
+          setEmailSent(true);
+          toast({
+            title: "Password Reset Email Sent!",
+            description: "Check your email for password reset instructions.",
+          });
+        } else {
+          toast({
+            title: "Error sending email",
+            description: emailResult.error || "Failed to send password reset email",
+            variant: "destructive",
+          });
+        }
       }
     } catch (error) {
       toast({

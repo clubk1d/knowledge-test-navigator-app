@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +11,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  resetPassword: (email: string) => Promise<{ error: any }>;
+  resetPassword: (email: string) => Promise<{ data: any; error: any }>;
   isAdmin: boolean;
 }
 
@@ -104,11 +105,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetPassword = async (email: string) => {
-    // We'll handle this with our custom email system in PasswordRecovery component
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    // Generate the reset token but don't send the default Supabase email
+    // We'll handle email sending separately via Resend
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/`,
     });
-    return { error };
+    return { data, error };
   };
 
   const signOut = async () => {
