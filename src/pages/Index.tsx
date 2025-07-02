@@ -7,10 +7,12 @@ import { Settings, Play, Trophy, BookOpen, LogOut, User, BarChart3, Coffee } fro
 import QuestionCard from '@/components/QuestionCard';
 import AdminDashboard from '@/components/AdminDashboard';
 import AuthForm from '@/components/AuthForm';
+import PasswordResetForm from '@/components/PasswordResetForm';
 import UserProgress from '@/components/UserProgress';
 import { Question, QuizSession } from '@/types/quiz';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuizProgress } from '@/hooks/useQuizProgress';
+import { supabase } from '@/integrations/supabase/client';
 
 // Sample questions data
 const sampleQuestions: Question[] = [
@@ -53,11 +55,33 @@ const sampleQuestions: Question[] = [
 ];
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'admin' | 'progress'>('menu');
+  const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'admin' | 'progress' | 'password-reset'>('menu');
   const [questions, setQuestions] = useState<Question[]>(sampleQuestions);
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
+  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const { user, loading, signOut, isAdmin } = useAuth();
   const { updateProgress } = useQuizProgress();
+
+  // Check for password reset parameters in URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    const type = urlParams.get('type');
+
+    if (type === 'recovery' && accessToken && refreshToken) {
+      // Set the session with the tokens from the URL
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      }).then(() => {
+        setIsPasswordReset(true);
+        setCurrentView('password-reset');
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+    }
+  }, []);
 
   // Show loading state while checking authentication
   if (loading) {
@@ -71,8 +95,37 @@ const Index = () => {
     );
   }
 
-  // Show auth form if user is not logged in
-  if (!user) {
+  // Show password reset form if user is resetting password
+  if (isPasswordReset && currentView === 'password-reset') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-4xl mx-auto py-12">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-blue-600 rounded-full mb-6">
+              <BookOpen className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-5xl font-bold text-gray-900 mb-4">
+              Driving Test Quiz
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
+              Reset your password to continue using the quiz application.
+            </p>
+          </div>
+
+          <PasswordResetForm 
+            onComplete={() => {
+              setIsPasswordReset(false);
+              setCurrentView('menu');
+            }} 
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth form if user is not logged in and not in password reset flow
+  if (!user && !isPasswordReset) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
         <div className="max-w-4xl mx-auto py-12">
