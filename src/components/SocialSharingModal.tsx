@@ -52,13 +52,13 @@ const SocialSharingModal = ({ isOpen, onClose, onShareComplete }: SocialSharingM
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast({
-        title: "リンクをコピーしました",
-        description: "SNSに投稿してください！",
+        title: "Link copied!",
+        description: "Please share it on your social media!",
       });
     } catch (err) {
       toast({
-        title: "エラー",
-        description: "リンクのコピーに失敗しました",
+        title: "Error",
+        description: "Failed to copy link",
         variant: "destructive",
       });
     }
@@ -66,8 +66,8 @@ const SocialSharingModal = ({ isOpen, onClose, onShareComplete }: SocialSharingM
 
   const handleShareComplete = () => {
     toast({
-      title: "シェアありがとうございます！",
-      description: "全ての問題がアンロックされました 🎉",
+      title: "Thank you for sharing!",
+      description: "All questions have been unlocked 🎉",
     });
     onShareComplete();
     onClose();
@@ -79,7 +79,7 @@ const SocialSharingModal = ({ isOpen, onClose, onShareComplete }: SocialSharingM
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Share2 className="w-5 h-5" />
-            <span>SNSでシェアして全問題をアンロック</span>
+            <span>Share on Social Media to Unlock All Questions</span>
           </DialogTitle>
         </DialogHeader>
         
@@ -87,10 +87,10 @@ const SocialSharingModal = ({ isOpen, onClose, onShareComplete }: SocialSharingM
           <Card className="bg-blue-50 border-blue-200">
             <CardContent className="p-4 text-center">
               <p className="text-sm text-blue-800 mb-2">
-                SNSでシェアすると、残りの100問がアンロックされます！
+                Share on social media to unlock the remaining 100 questions!
               </p>
               <p className="text-xs text-blue-600">
-                (50問以降は通常有料ですが、シェアで無料解放！)
+                (Questions beyond 50 are normally premium, but sharing unlocks them for free!)
               </p>
             </CardContent>
           </Card>
@@ -134,7 +134,7 @@ const SocialSharingModal = ({ isOpen, onClose, onShareComplete }: SocialSharingM
               ) : (
                 <Copy className="w-4 h-4 mr-2" />
               )}
-              {copied ? 'コピー済み' : 'リンク'}
+              {copied ? 'Copied!' : 'Copy Link'}
             </Button>
           </div>
 
@@ -144,7 +144,7 @@ const SocialSharingModal = ({ isOpen, onClose, onShareComplete }: SocialSharingM
               variant="ghost"
               className="text-gray-500"
             >
-              後でシェアする
+              Share Later
             </Button>
           </div>
         </div>

@@ -18,16 +18,16 @@ import { supabase } from '@/integrations/supabase/client';
 // Japanese driving test questions - 150 for each category
 const createKarimenQuestions = (): Question[] => {
   const baseQuestions = [
-    { text: "車は左側通行です。", answer: true, explanation: "日本では車両は道路の左側を通行することが法律で定められています。" },
-    { text: "信号のない交差点では、右から来る車が優先です。", answer: true, explanation: "信号のない同幅員の交差点では、右から来る車両が優先となります。" },
-    { text: "横断歩道では歩行者が優先です。", answer: true, explanation: "横断歩道では常に歩行者が優先され、車両は一時停止して歩行者を優先させる必要があります。" },
-    { text: "赤信号では完全に停止する必要があります。", answer: true, explanation: "赤信号では停止線の前で完全に停止し、青信号に変わるまで待機する必要があります。" },
-    { text: "運転中の携帯電話の使用は禁止されています。", answer: true, explanation: "運転中の携帯電話の使用は道路交通法で禁止されており、違反すると罰則があります。" },
-    { text: "雨天時は車間距離を普段より長く取る必要があります。", answer: true, explanation: "雨天時は路面が滑りやすくなり制動距離が長くなるため、車間距離を普段より長く取る必要があります。" },
-    { text: "黄信号は速度を上げて通過してよい合図です。", answer: false, explanation: "黄信号は注意して停止する合図です。安全に停止できない場合のみ注意して進行できます。" },
-    { text: "飲酒運転は少量なら問題ありません。", answer: false, explanation: "飲酒運転は量に関係なく法律で禁止されており、重大な事故の原因となります。" },
-    { text: "シートベルトは高速道路でのみ着用義務があります。", answer: false, explanation: "シートベルトは一般道路、高速道路を問わず全ての座席で着用が義務付けられています。" },
-    { text: "制限速度は目安であり、多少超過しても問題ありません。", answer: false, explanation: "制限速度は法律で定められた最高速度であり、これを超過することは違反行為です。" },
+    { text: "Cars drive on the left side of the road in Japan.", answer: true, explanation: "In Japan, vehicles are legally required to drive on the left side of the road." },
+    { text: "At intersections without traffic signals, vehicles coming from the right have priority.", answer: true, explanation: "At intersections of equal width without signals, vehicles coming from the right have priority." },
+    { text: "Pedestrians have priority at crosswalks.", answer: true, explanation: "Pedestrians always have priority at crosswalks, and vehicles must stop and give way to pedestrians." },
+    { text: "You must come to a complete stop at red lights.", answer: true, explanation: "At red lights, you must come to a complete stop before the stop line and wait until the light turns green." },
+    { text: "Using mobile phones while driving is prohibited.", answer: true, explanation: "Using mobile phones while driving is prohibited by traffic law and carries penalties." },
+    { text: "In rainy weather, you need to maintain a longer following distance than usual.", answer: true, explanation: "In rainy weather, roads become slippery and braking distance increases, so you need to maintain a longer following distance." },
+    { text: "Yellow lights mean you should speed up to pass through.", answer: false, explanation: "Yellow lights mean caution and prepare to stop. You should only proceed if you cannot stop safely." },
+    { text: "Drunk driving is acceptable if it's just a small amount.", answer: false, explanation: "Drunk driving is prohibited by law regardless of the amount and can cause serious accidents." },
+    { text: "Seat belts are only required on highways.", answer: false, explanation: "Seat belts are mandatory for all seats on both regular roads and highways." },
+    { text: "Speed limits are just guidelines and can be slightly exceeded.", answer: false, explanation: "Speed limits are legally mandated maximum speeds, and exceeding them is a traffic violation." },
   ];
 
   const questions: Question[] = [];
@@ -36,7 +36,7 @@ const createKarimenQuestions = (): Question[] => {
     const base = baseQuestions[baseIndex];
     questions.push({
       id: i + 1,
-      question_text: `${base.text} (問題${i + 1})`,
+      question_text: `${base.text} (Question ${i + 1})`,
       answer: base.answer,
       explanation: base.explanation,
       category: 'Karimen',
@@ -48,16 +48,16 @@ const createKarimenQuestions = (): Question[] => {
 
 const createHonMenQuestions = (): Question[] => {
   const baseQuestions = [
-    { text: "高速道路での最低速度は50km/hです。", answer: true, explanation: "高速道路では最低速度が50km/hと定められており、これを下回る速度での走行は違反となります。" },
-    { text: "追い越し時は右側から行います。", answer: true, explanation: "追い越しは原則として右側から行い、追い越し後は速やかに左側車線に戻る必要があります。" },
-    { text: "駐車場内では道路交通法は適用されません。", answer: false, explanation: "駐車場内でも道路交通法の規定が適用される場合があり、安全運転義務は常に求められます。" },
-    { text: "バックミラーの確認は発進時のみ必要です。", answer: false, explanation: "バックミラーの確認は発進時だけでなく、車線変更や停止時など常に必要です。" },
-    { text: "原動機付自転車は高速道路を走行できます。", answer: false, explanation: "原動機付自転車（50cc以下）は高速道路への進入が禁止されています。" },
-    { text: "夜間は前照灯を点灯する必要があります。", answer: true, explanation: "夜間および薄暮時は前照灯を点灯し、視界の確保と他の交通参加者への自車の存在を知らせる必要があります。" },
-    { text: "一時停止標識では徐行すれば停止しなくてもよい。", answer: false, explanation: "一時停止標識がある場所では、必ず完全に停止してから安全確認を行う必要があります。" },
-    { text: "車検が切れた車は公道を走行できません。", answer: true, explanation: "車検が切れた自動車は公道を走行することができず、違反すると重い罰則があります。" },
-    { text: "自賠責保険の加入は任意です。", answer: false, explanation: "自賠責保険の加入は法律で義務付けられており、未加入での運転は違法です。" },
-    { text: "踏切では一時停止して安全確認する必要があります。", answer: true, explanation: "踏切では必ず一時停止し、左右の安全確認を行ってから通過する必要があります。" },
+    { text: "The minimum speed on highways is 50 km/h.", answer: true, explanation: "The minimum speed on highways is set at 50 km/h, and driving below this speed is a violation." },
+    { text: "When overtaking, you should pass on the right side.", answer: true, explanation: "Overtaking should be done on the right side, and you should return to the left lane promptly after overtaking." },
+    { text: "Traffic laws do not apply in parking lots.", answer: false, explanation: "Traffic laws may apply in parking lots as well, and safe driving responsibilities are always required." },
+    { text: "Checking mirrors is only necessary when starting the vehicle.", answer: false, explanation: "Mirror checks are necessary not only when starting but also when changing lanes, stopping, and at all times while driving." },
+    { text: "Motorcycles under 50cc can drive on highways.", answer: false, explanation: "Motorcycles under 50cc (moped) are prohibited from entering highways." },
+    { text: "Headlights must be turned on at night.", answer: true, explanation: "Headlights must be turned on at night and during twilight hours to ensure visibility and inform other traffic participants of your vehicle's presence." },
+    { text: "At stop signs, you can proceed slowly without coming to a complete stop.", answer: false, explanation: "At stop signs, you must come to a complete stop and then check for safety before proceeding." },
+    { text: "Cars with expired vehicle inspection cannot be driven on public roads.", answer: true, explanation: "Cars with expired vehicle inspection cannot be driven on public roads, and violations carry heavy penalties." },
+    { text: "Compulsory automobile liability insurance is optional.", answer: false, explanation: "Compulsory automobile liability insurance is legally mandated, and driving without it is illegal." },
+    { text: "At railway crossings, you must stop and check for safety.", answer: true, explanation: "At railway crossings, you must come to a complete stop and check left and right for safety before crossing." },
   ];
 
   const questions: Question[] = [];
@@ -66,7 +66,7 @@ const createHonMenQuestions = (): Question[] => {
     const base = baseQuestions[baseIndex];
     questions.push({
       id: i + 1001, // Different ID range for HonMen
-      question_text: `${base.text} (本免問題${i + 1})`,
+      question_text: `${base.text} (Full License Question ${i + 1})`,
       answer: base.answer,
       explanation: base.explanation,
       category: 'HonMen',
@@ -159,7 +159,7 @@ const Index = () => {
               <BookOpen className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              運転免許試験対策
+              Japanese Driving Test Practice
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
               Reset your password to continue using the quiz application.
@@ -188,7 +188,7 @@ const Index = () => {
               <BookOpen className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              運転免許試験対策
+              Japanese Driving Test Practice
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
               Master your driving knowledge with our comprehensive true/false quiz system. 
@@ -352,8 +352,8 @@ const Index = () => {
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">運転免許試験対策</h1>
-              <p className="text-gray-600">ようこそ、{user.email}さん！</p>
+              <h1 className="text-2xl font-bold text-gray-900">Japanese Driving Test Practice</h1>
+              <p className="text-gray-600">Welcome, {user.email}!</p>
             </div>
           </div>
           
@@ -364,7 +364,7 @@ const Index = () => {
               className="hover:bg-yellow-50 border-yellow-300 text-yellow-700"
             >
               <Coffee className="w-4 h-4 mr-2" />
-              応援
+              Support
             </Button>
             
             <Button 
@@ -373,7 +373,7 @@ const Index = () => {
               className="hover:bg-blue-50"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              進捗
+              Progress
             </Button>
             
             {isAdmin && (
@@ -383,7 +383,7 @@ const Index = () => {
                 className="hover:bg-gray-50"
               >
                 <Settings className="w-4 h-4 mr-2" />
-                管理
+                Admin
               </Button>
             )}
             
@@ -393,7 +393,7 @@ const Index = () => {
               className="hover:bg-red-50 hover:border-red-200"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              ログアウト
+              Logout
             </Button>
           </div>
         </div>
@@ -405,21 +405,21 @@ const Index = () => {
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl text-blue-700 flex items-center justify-center">
                 <BookOpen className="w-6 h-6 mr-2" />
-                仮免許試験 (Karimen)
+                Provisional License (Karimen)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-center mb-6">
-                仮免許取得のための学科試験対策
+                Practice test for obtaining your provisional driving license
               </p>
               
               <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
                 <p className="text-sm text-green-800 text-center">
-                  最初の50問は無料！残り100問は
+                  First 50 questions are free! Remaining 100 questions
                   {hasSharedSocial ? (
-                    <span className="font-semibold text-green-600"> アンロック済み ✓</span>
+                    <span className="font-semibold text-green-600"> unlocked ✓</span>
                   ) : (
-                    <span className="font-semibold text-blue-600"> SNSシェアで解放</span>
+                    <span className="font-semibold text-blue-600"> unlock by sharing</span>
                   )}
                 </p>
               </div>
@@ -430,7 +430,7 @@ const Index = () => {
                 size="lg"
               >
                 <Play className="w-5 h-5 mr-2" />
-                仮免問題を開始 ({hasSharedSocial ? '150' : '50'}問)
+                Start Karimen Quiz ({hasSharedSocial ? '150' : '50'} questions)
               </Button>
               
               {!hasSharedSocial && (
@@ -440,7 +440,7 @@ const Index = () => {
                   className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 py-4"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
-                  SNSシェアして全問題解放
+                  Share to Unlock All Questions
                 </Button>
               )}
             </CardContent>
@@ -451,21 +451,21 @@ const Index = () => {
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl text-green-700 flex items-center justify-center">
                 <Trophy className="w-6 h-6 mr-2" />
-                本免許試験 (HonMen)
+                Full License (HonMen)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-center mb-6">
-                本免許取得のための学科試験対策
+                Practice test for obtaining your full driving license
               </p>
               
               <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
                 <p className="text-sm text-green-800 text-center">
-                  最初の50問は無料！残り100問は
+                  First 50 questions are free! Remaining 100 questions
                   {hasSharedSocial ? (
-                    <span className="font-semibold text-green-600"> アンロック済み ✓</span>
+                    <span className="font-semibold text-green-600"> unlocked ✓</span>
                   ) : (
-                    <span className="font-semibold text-blue-600"> SNSシェアで解放</span>
+                    <span className="font-semibold text-blue-600"> unlock by sharing</span>
                   )}
                 </p>
               </div>
@@ -476,7 +476,7 @@ const Index = () => {
                 size="lg"
               >
                 <Play className="w-5 h-5 mr-2" />
-                本免問題を開始 ({hasSharedSocial ? '150' : '50'}問)
+                Start HonMen Quiz ({hasSharedSocial ? '150' : '50'} questions)
               </Button>
               
               {!hasSharedSocial && (
@@ -486,7 +486,7 @@ const Index = () => {
                   className="w-full border-green-300 text-green-700 hover:bg-green-50 py-4"
                 >
                   <Share2 className="w-4 h-4 mr-2" />
-                  SNSシェアして全問題解放
+                  Share to Unlock All Questions
                 </Button>
               )}
             </CardContent>
@@ -499,29 +499,29 @@ const Index = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
               <div>
                 <div className="text-3xl font-bold text-blue-600 mb-2">150</div>
-                <div className="text-gray-600">仮免問題</div>
+                <div className="text-gray-600">Karimen Questions</div>
               </div>
               <div>
                 <div className="text-3xl font-bold text-green-600 mb-2">150</div>
-                <div className="text-gray-600">本免問題</div>
+                <div className="text-gray-600">HonMen Questions</div>
               </div>
               <div>
                 <div className="text-3xl font-bold text-purple-600 mb-2">{hasSharedSocial ? '300' : '100'}</div>
-                <div className="text-gray-600">利用可能問題数</div>
+                <div className="text-gray-600">Available Questions</div>
               </div>
               <div>
                 <div className="text-3xl font-bold text-orange-600 mb-2">∞</div>
-                <div className="text-gray-600">練習回数</div>
+                <div className="text-gray-600">Practice Attempts</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Japanese Pride Footer */}
+        {/* Footer */}
         <div className="text-center py-8 border-t border-white/20">
           <p className="text-gray-600 flex items-center justify-center space-x-2">
             <span>🇯🇵</span>
-            <span>日本の運転免許試験対策アプリ</span>
+            <span>Japanese Driving Test Practice App</span>
             <span>🚗</span>
           </p>
         </div>
