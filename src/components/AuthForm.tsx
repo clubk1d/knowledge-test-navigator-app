@@ -4,11 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, AlertTriangle, Mail } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
 import PasswordRecovery from './PasswordRecovery';
 
 const AuthForm = () => {
@@ -19,7 +17,6 @@ const AuthForm = () => {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [loginAttempts, setLoginAttempts] = useState(0);
   const [lockoutTime, setLockoutTime] = useState<number | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
@@ -51,41 +48,13 @@ const AuthForm = () => {
 
   const isLockedOut = lockoutTime && Date.now() < lockoutTime;
 
-  const handleSocialLogin = async (provider: 'google' | 'facebook') => {
-    setSocialLoading(provider);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/`,
-        },
-      });
-
-      if (error) {
-        toast({
-          title: "ソーシャルログインエラー",
-          description: error.message,
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "エラー",
-        description: "ログインに失敗しました。もう一度お試しください。",
-        variant: "destructive",
-      });
-    } finally {
-      setSocialLoading(null);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (isLockedOut) {
       toast({
-        title: "アカウントが一時的にロックされています",
-        description: `あと${Math.ceil(timeRemaining / 60)}分後に再試行してください。`,
+        title: "Account temporarily locked",
+        description: `Please try again in ${Math.ceil(timeRemaining / 60)} minutes.`,
         variant: "destructive",
       });
       return;
@@ -104,43 +73,43 @@ const AuthForm = () => {
             const lockTime = Date.now() + (15 * 60 * 1000); // 15 minutes
             setLockoutTime(lockTime);
             toast({
-              title: "アカウントがロックされました",
-              description: "ログイン試行回数が多すぎます。15分後に再試行してください。",
+              title: "Account locked",
+              description: "Too many failed login attempts. Please try again in 15 minutes.",
               variant: "destructive",
             });
           } else {
             toast({
-              title: "ログインに失敗しました",
-              description: `${error.message}. 残り試行回数: ${3 - newAttempts}回`,
+              title: "Login failed",
+              description: `${error.message}. Remaining attempts: ${3 - newAttempts}`,
               variant: "destructive",
             });
           }
         } else {
           setLoginAttempts(0);
           toast({
-            title: "おかえりなさい！",
-            description: "ログインに成功しました。",
+            title: "Welcome back!",
+            description: "Successfully logged in.",
           });
         }
       } else {
         const { error } = await signUp(email, password, fullName);
         if (error) {
           toast({
-            title: "アカウント作成に失敗しました",
+            title: "Account creation failed",
             description: error.message,
             variant: "destructive",
           });
         } else {
           toast({
-            title: "アカウントが作成されました！",
-            description: "メールを確認してアカウントを認証してください。",
+            title: "Account created!",
+            description: "Please check your email to verify your account.",
           });
         }
       }
     } catch (error) {
       toast({
-        title: "エラー",
-        description: "予期しないエラーが発生しました。もう一度お試しください。",
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -162,7 +131,7 @@ const AuthForm = () => {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">
-          {isLogin ? 'ログイン' : 'アカウント作成'}
+          {isLogin ? 'Sign In' : 'Create Account'}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -170,83 +139,41 @@ const AuthForm = () => {
           <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2">
             <AlertTriangle className="w-5 h-5 text-red-600" />
             <div className="text-sm text-red-700">
-              <p className="font-medium">アカウントがロックされています</p>
-              <p>残り時間: {formatTime(timeRemaining)}</p>
+              <p className="font-medium">Account is locked</p>
+              <p>Time remaining: {formatTime(timeRemaining)}</p>
             </div>
           </div>
         )}
 
-        {/* Social Login Buttons */}
-        <div className="space-y-3 mb-6">
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-12"
-            onClick={() => handleSocialLogin('google')}
-            disabled={socialLoading === 'google' || isLockedOut}
-          >
-            {socialLoading === 'google' ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900 mr-2"></div>
-            ) : (
-              <Mail className="w-4 h-4 mr-2" />
-            )}
-            Googleでログイン
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-12 bg-blue-600 text-white hover:bg-blue-700 border-blue-600"
-            onClick={() => handleSocialLogin('facebook')}
-            disabled={socialLoading === 'facebook' || isLockedOut}
-          >
-            {socialLoading === 'facebook' ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-            ) : (
-              <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-              </svg>
-            )}
-            Facebookでログイン
-          </Button>
-        </div>
-
-        <div className="relative mb-6">
-          <Separator />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="bg-white px-2 text-sm text-gray-400">または</span>
-          </div>
-        </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           {!isLogin && (
             <div className="space-y-2">
-              <Label htmlFor="fullName">お名前</Label>
+              <Label htmlFor="fullName">Full Name</Label>
               <Input
                 id="fullName"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required={!isLogin}
-                placeholder="お名前を入力してください"
+                placeholder="Enter your full name"
               />
             </div>
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="email">メールアドレス</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="メールアドレスを入力してください"
+              placeholder="Enter your email"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password">パスワード</Label>
+            <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Input
                 id="password"
@@ -254,7 +181,7 @@ const AuthForm = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="パスワードを入力してください"
+                placeholder="Enter your password"
                 minLength={6}
               />
               <Button
@@ -281,7 +208,7 @@ const AuthForm = () => {
                 onClick={() => setShowPasswordRecovery(true)}
                 className="text-sm text-blue-600 hover:underline"
               >
-                パスワードをお忘れですか？
+                Forgot your password?
               </Button>
             </div>
           )}
@@ -291,7 +218,7 @@ const AuthForm = () => {
             className="w-full" 
             disabled={loading || isLockedOut}
           >
-            {loading ? '処理中...' : (isLogin ? 'ログイン' : 'アカウント作成')}
+            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
           </Button>
         </form>
         
@@ -301,7 +228,7 @@ const AuthForm = () => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-sm text-blue-600 hover:underline"
           >
-            {isLogin ? "アカウントをお持ちでない方はこちら" : "すでにアカウントをお持ちの方はこちら"}
+            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
           </button>
         </div>
       </CardContent>
