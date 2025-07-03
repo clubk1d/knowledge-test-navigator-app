@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Settings, Play, Trophy, BookOpen, LogOut, User, BarChart3, Coffee } from 'lucide-react';
+import { Settings, Play, Trophy, BookOpen, LogOut, User, BarChart3, Coffee, Lock, Share2 } from 'lucide-react';
 import QuestionCard from '@/components/QuestionCard';
+import SocialSharingModal from '@/components/SocialSharingModal';
 import AdminDashboard from '@/components/AdminDashboard';
 import AuthForm from '@/components/AuthForm';
 import PasswordResetForm from '@/components/PasswordResetForm';
@@ -14,51 +15,74 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQuizProgress } from '@/hooks/useQuizProgress';
 import { supabase } from '@/integrations/supabase/client';
 
-// Sample questions data
-const sampleQuestions: Question[] = [
-  {
-    id: 1,
-    question_text: "You must come to a complete stop at a red traffic light.",
-    answer: true,
-    explanation: "Red lights require all vehicles to come to a complete stop before the stop line.",
-    category: "Traffic Signs",
-    image_url: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop"
-  },
-  {
-    id: 2,
-    question_text: "It's legal to use your mobile phone while driving if you're stopped at traffic lights.",
-    answer: false,
-    explanation: "Using a mobile phone while driving is illegal in most jurisdictions, even when stopped at lights, as you are still considered to be driving.",
-    category: "Road Rules"
-  },
-  {
-    id: 3,
-    question_text: "You should increase your following distance in wet weather conditions.",
-    answer: true,
-    explanation: "Wet roads reduce tire grip and increase stopping distances, so you should maintain a greater following distance.",
-    category: "General Safety"
-  },
-  {
-    id: 4,
-    question_text: "A yellow traffic light means you should speed up to get through the intersection.",
-    answer: false,
-    explanation: "A yellow light means prepare to stop. You should only proceed if you cannot stop safely before the intersection.",
-    category: "Traffic Signs"
-  },
-  {
-    id: 5,
-    question_text: "The speed limit in a school zone applies 24 hours a day.",
-    answer: false,
-    explanation: "School zone speed limits typically only apply during school hours or when children are present, as indicated by signs.",
-    category: "Road Rules"
+// Japanese driving test questions - 150 for each category
+const createKarimenQuestions = (): Question[] => {
+  const baseQuestions = [
+    { text: "車は左側通行です。", answer: true, explanation: "日本では車両は道路の左側を通行することが法律で定められています。" },
+    { text: "信号のない交差点では、右から来る車が優先です。", answer: true, explanation: "信号のない同幅員の交差点では、右から来る車両が優先となります。" },
+    { text: "横断歩道では歩行者が優先です。", answer: true, explanation: "横断歩道では常に歩行者が優先され、車両は一時停止して歩行者を優先させる必要があります。" },
+    { text: "赤信号では完全に停止する必要があります。", answer: true, explanation: "赤信号では停止線の前で完全に停止し、青信号に変わるまで待機する必要があります。" },
+    { text: "運転中の携帯電話の使用は禁止されています。", answer: true, explanation: "運転中の携帯電話の使用は道路交通法で禁止されており、違反すると罰則があります。" },
+    { text: "雨天時は車間距離を普段より長く取る必要があります。", answer: true, explanation: "雨天時は路面が滑りやすくなり制動距離が長くなるため、車間距離を普段より長く取る必要があります。" },
+    { text: "黄信号は速度を上げて通過してよい合図です。", answer: false, explanation: "黄信号は注意して停止する合図です。安全に停止できない場合のみ注意して進行できます。" },
+    { text: "飲酒運転は少量なら問題ありません。", answer: false, explanation: "飲酒運転は量に関係なく法律で禁止されており、重大な事故の原因となります。" },
+    { text: "シートベルトは高速道路でのみ着用義務があります。", answer: false, explanation: "シートベルトは一般道路、高速道路を問わず全ての座席で着用が義務付けられています。" },
+    { text: "制限速度は目安であり、多少超過しても問題ありません。", answer: false, explanation: "制限速度は法律で定められた最高速度であり、これを超過することは違反行為です。" },
+  ];
+
+  const questions: Question[] = [];
+  for (let i = 0; i < 150; i++) {
+    const baseIndex = i % baseQuestions.length;
+    const base = baseQuestions[baseIndex];
+    questions.push({
+      id: i + 1,
+      question_text: `${base.text} (問題${i + 1})`,
+      answer: base.answer,
+      explanation: base.explanation,
+      category: 'Karimen',
+      is_premium: i >= 50
+    });
   }
-];
+  return questions;
+};
+
+const createHonMenQuestions = (): Question[] => {
+  const baseQuestions = [
+    { text: "高速道路での最低速度は50km/hです。", answer: true, explanation: "高速道路では最低速度が50km/hと定められており、これを下回る速度での走行は違反となります。" },
+    { text: "追い越し時は右側から行います。", answer: true, explanation: "追い越しは原則として右側から行い、追い越し後は速やかに左側車線に戻る必要があります。" },
+    { text: "駐車場内では道路交通法は適用されません。", answer: false, explanation: "駐車場内でも道路交通法の規定が適用される場合があり、安全運転義務は常に求められます。" },
+    { text: "バックミラーの確認は発進時のみ必要です。", answer: false, explanation: "バックミラーの確認は発進時だけでなく、車線変更や停止時など常に必要です。" },
+    { text: "原動機付自転車は高速道路を走行できます。", answer: false, explanation: "原動機付自転車（50cc以下）は高速道路への進入が禁止されています。" },
+    { text: "夜間は前照灯を点灯する必要があります。", answer: true, explanation: "夜間および薄暮時は前照灯を点灯し、視界の確保と他の交通参加者への自車の存在を知らせる必要があります。" },
+    { text: "一時停止標識では徐行すれば停止しなくてもよい。", answer: false, explanation: "一時停止標識がある場所では、必ず完全に停止してから安全確認を行う必要があります。" },
+    { text: "車検が切れた車は公道を走行できません。", answer: true, explanation: "車検が切れた自動車は公道を走行することができず、違反すると重い罰則があります。" },
+    { text: "自賠責保険の加入は任意です。", answer: false, explanation: "自賠責保険の加入は法律で義務付けられており、未加入での運転は違法です。" },
+    { text: "踏切では一時停止して安全確認する必要があります。", answer: true, explanation: "踏切では必ず一時停止し、左右の安全確認を行ってから通過する必要があります。" },
+  ];
+
+  const questions: Question[] = [];
+  for (let i = 0; i < 150; i++) {
+    const baseIndex = i % baseQuestions.length;
+    const base = baseQuestions[baseIndex];
+    questions.push({
+      id: i + 1001, // Different ID range for HonMen
+      question_text: `${base.text} (本免問題${i + 1})`,
+      answer: base.answer,
+      explanation: base.explanation,
+      category: 'HonMen',
+      is_premium: i >= 50
+    });
+  }
+  return questions;
+};
 
 const Index = () => {
   const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'admin' | 'progress' | 'password-reset'>('menu');
-  const [questions, setQuestions] = useState<Question[]>(sampleQuestions);
+  const [questions, setQuestions] = useState<Question[]>([...createKarimenQuestions(), ...createHonMenQuestions()]);
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
   const [isPasswordReset, setIsPasswordReset] = useState(false);
+  const [showSocialModal, setShowSocialModal] = useState(false);
+  const [hasSharedSocial, setHasSharedSocial] = useState(false);
   const { user, loading, signOut, isAdmin } = useAuth();
   const { updateProgress } = useQuizProgress();
 
@@ -106,6 +130,12 @@ const Index = () => {
     }
   }, []);
 
+  // Check if user has shared on social media (in real app, this would be stored in database)
+  useEffect(() => {
+    const shared = localStorage.getItem('social_shared');
+    setHasSharedSocial(shared === 'true');
+  }, []);
+
   // Show loading state while checking authentication
   if (loading) {
     return (
@@ -129,7 +159,7 @@ const Index = () => {
               <BookOpen className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              Driving Test Quiz
+              運転免許試験対策
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
               Reset your password to continue using the quiz application.
@@ -158,7 +188,7 @@ const Index = () => {
               <BookOpen className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-4">
-              Driving Test Quiz
+              運転免許試験対策
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8">
               Master your driving knowledge with our comprehensive true/false quiz system. 
@@ -181,15 +211,29 @@ const Index = () => {
     );
   }
 
-  const startQuiz = (category?: string, questionCount?: number) => {
+  const startQuiz = (category?: 'Karimen' | 'HonMen' | 'all', questionCount?: number) => {
     let quizQuestions = [...questions];
     
     if (category && category !== 'all') {
       quizQuestions = questions.filter(q => q.category === category);
     }
     
+    // Filter premium questions if user hasn't shared
+    if (!hasSharedSocial) {
+      quizQuestions = quizQuestions.filter(q => !q.is_premium);
+    }
+    
     if (questionCount) {
       quizQuestions = quizQuestions.sort(() => Math.random() - 0.5).slice(0, questionCount);
+    }
+    
+    // Check if trying to access premium questions
+    if (!hasSharedSocial && questions.filter(q => q.category === category).length > 50) {
+      const availableQuestions = quizQuestions.length;
+      if (availableQuestions < 50 && category !== 'all') {
+        setShowSocialModal(true);
+        return;
+      }
     }
     
     const session: QuizSession = {
@@ -202,6 +246,11 @@ const Index = () => {
     
     setQuizSession(session);
     setCurrentView('quiz');
+  };
+
+  const handleSocialShare = () => {
+    setHasSharedSocial(true);
+    localStorage.setItem('social_shared', 'true');
   };
 
   const updateQuizSession = (updatedSession: QuizSession) => {
@@ -303,8 +352,8 @@ const Index = () => {
               <BookOpen className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Driving Test Quiz</h1>
-              <p className="text-gray-600">Welcome back, {user.email}!</p>
+              <h1 className="text-2xl font-bold text-gray-900">運転免許試験対策</h1>
+              <p className="text-gray-600">ようこそ、{user.email}さん！</p>
             </div>
           </div>
           
@@ -315,7 +364,7 @@ const Index = () => {
               className="hover:bg-yellow-50 border-yellow-300 text-yellow-700"
             >
               <Coffee className="w-4 h-4 mr-2" />
-              Buy me a coffee
+              応援
             </Button>
             
             <Button 
@@ -324,7 +373,7 @@ const Index = () => {
               className="hover:bg-blue-50"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
-              Progress
+              進捗
             </Button>
             
             {isAdmin && (
@@ -334,7 +383,7 @@ const Index = () => {
                 className="hover:bg-gray-50"
               >
                 <Settings className="w-4 h-4 mr-2" />
-                Admin
+                管理
               </Button>
             )}
             
@@ -344,93 +393,102 @@ const Index = () => {
               className="hover:bg-red-50 hover:border-red-200"
             >
               <LogOut className="w-4 h-4 mr-2" />
-              Sign Out
+              ログアウト
             </Button>
           </div>
         </div>
 
         {/* Quiz Options */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
-          {/* Category Selection */}
+          {/* Karimen Category */}
           <Card className="hover:shadow-lg transition-all duration-300 border-2 hover:border-blue-200">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl text-blue-700 flex items-center justify-center">
                 <BookOpen className="w-6 h-6 mr-2" />
-                Practice by Category
+                仮免許試験 (Karimen)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-center mb-6">
-                Focus on specific areas of driving knowledge
+                仮免許取得のための学科試験対策
               </p>
               
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
+                <p className="text-sm text-green-800 text-center">
+                  最初の50問は無料！残り100問は
+                  {hasSharedSocial ? (
+                    <span className="font-semibold text-green-600"> アンロック済み ✓</span>
+                  ) : (
+                    <span className="font-semibold text-blue-600"> SNSシェアで解放</span>
+                  )}
+                </p>
+              </div>
+              
               <Button 
-                onClick={() => startQuiz('all')}
+                onClick={() => startQuiz('Karimen')}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-lg py-6"
                 size="lg"
               >
                 <Play className="w-5 h-5 mr-2" />
-                All Categories ({questions.length} questions)
+                仮免問題を開始 ({hasSharedSocial ? '150' : '50'}問)
               </Button>
               
-              <div className="space-y-3">
-                {getCategories().map(category => {
-                  const count = questions.filter(q => q.category === category).length;
-                  return (
-                    <Button 
-                      key={category}
-                      onClick={() => startQuiz(category)}
-                      variant="outline"
-                      className="w-full justify-between text-left py-4 hover:bg-blue-50 hover:border-blue-300"
-                    >
-                      <span className="font-medium">{category}</span>
-                      <Badge variant="secondary">{count} questions</Badge>
-                    </Button>
-                  );
-                })}
-              </div>
+              {!hasSharedSocial && (
+                <Button 
+                  onClick={() => setShowSocialModal(true)}
+                  variant="outline"
+                  className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 py-4"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  SNSシェアして全問題解放
+                </Button>
+              )}
             </CardContent>
           </Card>
 
-          {/* Random Quiz Options */}
+          {/* HonMen Category */}
           <Card className="hover:shadow-lg transition-all duration-300 border-2 hover:border-green-200">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl text-green-700 flex items-center justify-center">
                 <Trophy className="w-6 h-6 mr-2" />
-                Random Challenge
+                本免許試験 (HonMen)
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-gray-600 text-center mb-6">
-                Test your knowledge with randomly selected questions
+                本免許取得のための学科試験対策
               </p>
               
-              <div className="space-y-4">
-                <Button 
-                  onClick={() => startQuiz(undefined, 10)}
-                  className="w-full bg-green-600 hover:bg-green-700 text-lg py-6"
-                  size="lg"
-                >
-                  <Play className="w-5 h-5 mr-2" />
-                  Quick Quiz (10 questions)
-                </Button>
-                
-                <Button 
-                  onClick={() => startQuiz(undefined, 25)}
-                  variant="outline"
-                  className="w-full border-green-300 text-green-700 hover:bg-green-50 py-4"
-                >
-                  Standard Quiz (25 questions)
-                </Button>
-                
-                <Button 
-                  onClick={() => startQuiz(undefined, 50)}
-                  variant="outline"
-                  className="w-full border-green-300 text-green-700 hover:bg-green-50 py-4"
-                >
-                  Extended Quiz (50 questions)
-                </Button>
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
+                <p className="text-sm text-green-800 text-center">
+                  最初の50問は無料！残り100問は
+                  {hasSharedSocial ? (
+                    <span className="font-semibold text-green-600"> アンロック済み ✓</span>
+                  ) : (
+                    <span className="font-semibold text-blue-600"> SNSシェアで解放</span>
+                  )}
+                </p>
               </div>
+              
+              <Button 
+                onClick={() => startQuiz('HonMen')}
+                className="w-full bg-green-600 hover:bg-green-700 text-lg py-6"
+                size="lg"
+              >
+                <Play className="w-5 h-5 mr-2" />
+                本免問題を開始 ({hasSharedSocial ? '150' : '50'}問)
+              </Button>
+              
+              {!hasSharedSocial && (
+                <Button 
+                  onClick={() => setShowSocialModal(true)}
+                  variant="outline"
+                  className="w-full border-green-300 text-green-700 hover:bg-green-50 py-4"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  SNSシェアして全問題解放
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -438,32 +496,43 @@ const Index = () => {
         {/* Stats Section */}
         <Card className="bg-white/50 backdrop-blur-sm mb-8">
           <CardContent className="py-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
               <div>
-                <div className="text-3xl font-bold text-blue-600 mb-2">{questions.length}</div>
-                <div className="text-gray-600">Total Questions</div>
+                <div className="text-3xl font-bold text-blue-600 mb-2">150</div>
+                <div className="text-gray-600">仮免問題</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-green-600 mb-2">{getCategories().length}</div>
-                <div className="text-gray-600">Categories</div>
+                <div className="text-3xl font-bold text-green-600 mb-2">150</div>
+                <div className="text-gray-600">本免問題</div>
               </div>
               <div>
-                <div className="text-3xl font-bold text-purple-600 mb-2">∞</div>
-                <div className="text-gray-600">Practice Sessions</div>
+                <div className="text-3xl font-bold text-purple-600 mb-2">{hasSharedSocial ? '300' : '100'}</div>
+                <div className="text-gray-600">利用可能問題数</div>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-orange-600 mb-2">∞</div>
+                <div className="text-gray-600">練習回数</div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Filipino Pride Footer */}
+        {/* Japanese Pride Footer */}
         <div className="text-center py-8 border-t border-white/20">
           <p className="text-gray-600 flex items-center justify-center space-x-2">
-            <span>🇵🇭</span>
-            <span>Proudly made by a Filipino</span>
-            <span>🇵🇭</span>
+            <span>🇯🇵</span>
+            <span>日本の運転免許試験対策アプリ</span>
+            <span>🚗</span>
           </p>
         </div>
       </div>
+
+      {/* Social Sharing Modal */}
+      <SocialSharingModal
+        isOpen={showSocialModal}
+        onClose={() => setShowSocialModal(false)}
+        onShareComplete={handleSocialShare}
+      />
     </div>
   );
 };
