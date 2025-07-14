@@ -80,15 +80,15 @@ const QuestionCard = ({ question, onAnswer, quizSession, onQuizComplete }: Quest
 
   return (
     <Card className="w-full max-w-4xl mx-auto">
-      <CardContent className="p-8">
-        <div className="space-y-6">
+      <CardContent className="p-4 sm:p-6 lg:p-8">
+        <div className="space-y-4 sm:space-y-6">
           {/* Question Header */}
           <div className="flex items-center justify-between">
-            <Badge variant="outline" className="text-sm">
+            <Badge variant="outline" className="text-xs sm:text-sm">
               {question.category}
             </Badge>
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <Clock className="w-4 h-4" />
+            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>{formatTime(timeSpent)}</span>
             </div>
           </div>
@@ -99,25 +99,24 @@ const QuestionCard = ({ question, onAnswer, quizSession, onQuizComplete }: Quest
               <img 
                 src={question.image_url} 
                 alt="Question illustration"
-                className="max-w-md w-full h-auto rounded-lg shadow-md"
+                className="max-w-full w-full sm:max-w-md h-auto rounded-lg shadow-md"
               />
             </div>
           )}
 
           {/* Question Text */}
           <div className="text-center">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6 px-2">
               {question.question_text}
             </h2>
           </div>
 
           {/* Answer Buttons */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-2xl mx-auto">
             <Button
               onClick={() => handleAnswer(true)}
               disabled={selectedAnswer !== null}
-              size="lg"
-              className={`h-16 text-lg font-semibold transition-all ${
+              className={`h-12 sm:h-14 lg:h-16 text-base sm:text-lg font-semibold transition-all ${
                 selectedAnswer === true
                   ? question.answer
                     ? 'bg-green-600 hover:bg-green-600'
@@ -130,8 +129,8 @@ const QuestionCard = ({ question, onAnswer, quizSession, onQuizComplete }: Quest
               }`}
             >
               {selectedAnswer === true && (
-                <span className="mr-2">
-                  {question.answer ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                <span className="mr-1 sm:mr-2">
+                  {question.answer ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /> : <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </span>
               )}
               TRUE
@@ -140,8 +139,7 @@ const QuestionCard = ({ question, onAnswer, quizSession, onQuizComplete }: Quest
             <Button
               onClick={() => handleAnswer(false)}
               disabled={selectedAnswer !== null}
-              size="lg"
-              className={`h-16 text-lg font-semibold transition-all ${
+              className={`h-12 sm:h-14 lg:h-16 text-base sm:text-lg font-semibold transition-all ${
                 selectedAnswer === false
                   ? !question.answer
                     ? 'bg-green-600 hover:bg-green-600'
@@ -154,8 +152,8 @@ const QuestionCard = ({ question, onAnswer, quizSession, onQuizComplete }: Quest
               }`}
             >
               {selectedAnswer === false && (
-                <span className="mr-2">
-                  {!question.answer ? <CheckCircle className="w-5 h-5" /> : <XCircle className="w-5 h-5" />}
+                <span className="mr-1 sm:mr-2">
+                  {!question.answer ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" /> : <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
                 </span>
               )}
               FALSE
@@ -164,30 +162,30 @@ const QuestionCard = ({ question, onAnswer, quizSession, onQuizComplete }: Quest
 
           {/* Explanation */}
           {showExplanation && (
-            <div className="mt-8 space-y-4">
-              <div className={`p-6 rounded-lg border-l-4 ${
+            <div className="mt-6 sm:mt-8 space-y-4">
+              <div className={`p-4 sm:p-6 rounded-lg border-l-4 ${
                 selectedAnswer === question.answer
                   ? 'bg-green-50 border-green-500'
                   : 'bg-red-50 border-red-500'
               }`}>
                 <div className="flex items-center mb-3">
                   {selectedAnswer === question.answer ? (
-                    <CheckCircle className="w-6 h-6 text-green-600 mr-2" />
+                    <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600 mr-2" />
                   ) : (
-                    <XCircle className="w-6 h-6 text-red-600 mr-2" />
+                    <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 mr-2" />
                   )}
-                  <span className={`font-semibold text-lg ${
+                  <span className={`font-semibold text-base sm:text-lg ${
                     selectedAnswer === question.answer ? 'text-green-800' : 'text-red-800'
                   }`}>
                     {selectedAnswer === question.answer ? 'Correct!' : 'Incorrect'}
                   </span>
                 </div>
                 
-                <p className="text-gray-700 mb-3">
+                <p className="text-sm sm:text-base text-gray-700 mb-3">
                   <strong>Correct answer:</strong> {question.answer ? 'TRUE' : 'FALSE'}
                 </p>
                 
-                <p className="text-gray-700">
+                <p className="text-sm sm:text-base text-gray-700">
                   <strong>Explanation:</strong> {question.explanation}
                 </p>
               </div>
@@ -195,8 +193,7 @@ const QuestionCard = ({ question, onAnswer, quizSession, onQuizComplete }: Quest
               <div className="text-center">
                 <Button 
                   onClick={handleNext}
-                  size="lg"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 sm:px-8 py-2 sm:py-3 text-sm sm:text-base"
                 >
                   {quizSession.currentQuestionIndex + 1 >= quizSession.totalQuestions 
                     ? 'Complete Quiz' 
