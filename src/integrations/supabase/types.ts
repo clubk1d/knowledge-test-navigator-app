@@ -74,6 +74,42 @@ export type Database = {
         }
         Relationships: []
       }
+      questions: {
+        Row: {
+          answer: boolean
+          category: string
+          created_at: string | null
+          explanation: string
+          id: number
+          image_url: string | null
+          is_premium: boolean | null
+          question_text: string
+          updated_at: string | null
+        }
+        Insert: {
+          answer: boolean
+          category: string
+          created_at?: string | null
+          explanation: string
+          id?: number
+          image_url?: string | null
+          is_premium?: boolean | null
+          question_text: string
+          updated_at?: string | null
+        }
+        Update: {
+          answer?: boolean
+          category?: string
+          created_at?: string | null
+          explanation?: string
+          id?: number
+          image_url?: string | null
+          is_premium?: boolean | null
+          question_text?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       quiz_sessions: {
         Row: {
           category: string | null
