@@ -6,118 +6,26 @@ import { Progress } from '@/components/ui/progress';
 import { Trophy, BookOpen } from 'lucide-react';
 import QuestionCard from '@/components/QuestionCard';
 import SocialSharingModal from '@/components/SocialSharingModal';
-import AdminDashboard from '@/components/AdminDashboard';
-import PasswordResetForm from '@/components/PasswordResetForm';
 import UserProgress from '@/components/UserProgress';
-import AppHeader from '@/components/AppHeader';
 import QuizStats from '@/components/QuizStats';
 import QuizCategoryCard from '@/components/QuizCategoryCard';
-import LoadingScreen from '@/components/LoadingScreen';
-import AuthScreen from '@/components/AuthScreen';
 import { Question, QuizSession } from '@/types/quiz';
-import { useAuth } from '@/contexts/AuthContext';
-import { useQuizProgress } from '@/hooks/useQuizProgress';
-import { supabase } from '@/integrations/supabase/client';
+import { useCacheProgress } from '@/hooks/useCacheProgress';
 import { generateAllQuestions } from '@/utils/questionGenerator';
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'admin' | 'progress' | 'password-reset'>('menu');
+  const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'progress'>('menu');
   const [questions, setQuestions] = useState<Question[]>(generateAllQuestions());
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
-  const [isPasswordReset, setIsPasswordReset] = useState(false);
   const [showSocialModal, setShowSocialModal] = useState(false);
   const [hasSharedSocial, setHasSharedSocial] = useState(false);
-  const { user, loading, signOut, isAdmin } = useAuth();
-  const { updateProgress } = useQuizProgress();
+  const { updateProgress } = useCacheProgress();
 
-  // Check for password reset parameters in URL
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessToken = urlParams.get('access_token');
-    const type = urlParams.get('type');
-    const tokenHash = urlParams.get('token_hash');
-
-    console.log('URL params:', { accessToken, type, tokenHash });
-
-    if (type === 'recovery' && accessToken) {
-      console.log('Setting password reset session with token:', accessToken);
-      
-      // Verify and set the session with the recovery token
-      supabase.auth.verifyOtp({
-        token_hash: tokenHash || accessToken,
-        type: 'recovery'
-      }).then(({ data, error }) => {
-        console.log('Verify OTP result:', { data, error });
-        
-        if (!error && data.session) {
-          console.log('Password reset session verified successfully');
-          setIsPasswordReset(true);
-          setCurrentView('password-reset');
-          // Clean up URL
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } else {
-          console.error('Failed to verify password reset token:', error);
-          // Try alternative method
-          supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: accessToken, // Use access token as fallback
-          }).then(() => {
-            setIsPasswordReset(true);
-            setCurrentView('password-reset');
-            // Clean up URL
-            window.history.replaceState({}, document.title, window.location.pathname);
-          }).catch((setSessionError) => {
-            console.error('Failed to set session:', setSessionError);
-          });
-        }
-      });
-    }
-  }, []);
-
-  // Check if user has shared on social media (in real app, this would be stored in database)
+  // Check if user has shared on social media
   useEffect(() => {
     const shared = localStorage.getItem('social_shared');
     setHasSharedSocial(shared === 'true');
   }, []);
-
-  // Show loading state while checking authentication
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
-  // Show password reset form if user is resetting password
-  if (isPasswordReset && currentView === 'password-reset') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-4xl mx-auto py-6 sm:py-12">
-          {/* Header */}
-          <div className="text-center mb-8 sm:mb-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-blue-600 rounded-full mb-4 sm:mb-6">
-              <BookOpen className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-5xl font-bold text-gray-900 mb-4 px-4">
-              Japanese Driving Test Practice
-            </h1>
-            <p className="text-sm sm:text-lg lg:text-xl text-gray-600 max-w-2xl mx-auto mb-6 sm:mb-8 px-4">
-              Reset your password to continue using the quiz application.
-            </p>
-          </div>
-
-          <PasswordResetForm 
-            onComplete={() => {
-              setIsPasswordReset(false);
-              setCurrentView('menu');
-            }} 
-          />
-        </div>
-      </div>
-    );
-  }
-
-  // Show auth form if user is not logged in and not in password reset flow
-  if (!user && !isPasswordReset) {
-    return <AuthScreen />;
-  }
 
   const startQuiz = (category?: 'Karimen' | 'HonMen' | 'all', questionCount?: number) => {
     let quizQuestions = [...questions];
@@ -173,20 +81,10 @@ const Index = () => {
     setCurrentView('menu');
   };
 
-  if (currentView === 'admin') {
-    return (
-      <AdminDashboard 
-        questions={questions}
-        setQuestions={setQuestions}
-        onBack={() => setCurrentView('menu')}
-      />
-    );
-  }
-
   if (currentView === 'progress') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 space-y-4 sm:space-y-0">
             <Button 
               variant="outline" 
@@ -206,8 +104,8 @@ const Index = () => {
 
   if (currentView === 'quiz' && quizSession) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 sm:p-4">
+        <div className="max-w-4xl mx-auto px-2 sm:px-0">
           <div className="mb-4 sm:mb-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 space-y-2 sm:space-y-0">
               <Button 
@@ -247,18 +145,34 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-6xl mx-auto">
-        <AppHeader
-          userEmail={user.email || ''}
-          isAdmin={isAdmin}
-          onProgressClick={() => setCurrentView('progress')}
-          onAdminClick={() => setCurrentView('admin')}
-          onSignOut={signOut}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 sm:p-4">
+      <div className="max-w-6xl mx-auto px-2 sm:px-0">
+        {/* Simple Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 pt-4 space-y-4 sm:space-y-0">
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <div className="inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-600 rounded-full flex-shrink-0">
+              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold text-gray-900">Japanese Driving Test Practice</h1>
+              <p className="text-sm sm:text-base text-gray-600">Practice anytime, anywhere!</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2 overflow-x-auto">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setCurrentView('progress')}
+              className="hover:bg-blue-50 whitespace-nowrap"
+            >
+              📊 <span className="hidden sm:inline ml-2">Progress</span>
+            </Button>
+          </div>
+        </div>
 
         {/* Quiz Options */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-8 sm:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <QuizCategoryCard
             category="Karimen"
             hasSharedSocial={hasSharedSocial}
@@ -276,7 +190,7 @@ const Index = () => {
         <QuizStats hasSharedSocial={hasSharedSocial} />
 
         {/* Footer */}
-        <div className="text-center py-6 sm:py-8 border-t border-white/20">
+        <div className="text-center py-6 sm:py-8 border-t border-white/20 mt-8">
           <p className="text-sm sm:text-base text-gray-600 flex items-center justify-center space-x-2 px-4">
             <span>🇯🇵</span>
             <span>Japanese Driving Test Practice App</span>
