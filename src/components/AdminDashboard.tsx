@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Trash2, Edit, Plus, Save, X, ArrowLeft } from 'lucide-react';
+import { Trash2, Edit, Plus, Save, X, ArrowLeft, LogOut } from 'lucide-react';
 import { Question } from '@/types/quiz';
 import { useToast } from '@/hooks/use-toast';
 
@@ -16,9 +16,10 @@ interface AdminDashboardProps {
   questions: Question[];
   setQuestions: (questions: Question[]) => void;
   onBack: () => void;
+  onLogout: () => void;
 }
 
-const AdminDashboard = ({ questions, setQuestions, onBack }: AdminDashboardProps) => {
+const AdminDashboard = ({ questions, setQuestions, onBack, onLogout }: AdminDashboardProps) => {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,10 +138,16 @@ const AdminDashboard = ({ questions, setQuestions, onBack }: AdminDashboardProps
             Back to Quiz
           </Button>
           <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <Button onClick={() => setIsCreating(true)} className="bg-green-600 hover:bg-green-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Add Question
-          </Button>
+          <div className="flex space-x-2">
+            <Button onClick={() => setIsCreating(true)} className="bg-green-600 hover:bg-green-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Question
+            </Button>
+            <Button variant="outline" onClick={onLogout} className="hover:bg-red-50 hover:border-red-200">
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
