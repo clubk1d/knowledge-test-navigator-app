@@ -15,6 +15,7 @@ export interface QuizSession {
   score: number;
   totalQuestions: number;
   answeredQuestions: AnsweredQuestion[];
+  challengeType?: 'timed' | 'untimed' | 'regulations' | 'signs';
 }
 
 export interface AnsweredQuestion {

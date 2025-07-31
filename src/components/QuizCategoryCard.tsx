@@ -2,16 +2,14 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Share2, BookOpen, Trophy } from 'lucide-react';
+import { BookOpen, Trophy } from 'lucide-react';
 
 interface QuizCategoryCardProps {
   category: 'Karimen' | 'HonMen';
-  hasSharedSocial: boolean;
-  onStartQuiz: (category: 'Karimen' | 'HonMen') => void;
-  onShowSocialModal: () => void;
+  onStartChallenge: (category: 'Karimen' | 'HonMen', challenge: 'timed' | 'untimed' | 'regulations' | 'signs') => void;
 }
 
-const QuizCategoryCard = ({ category, hasSharedSocial, onStartQuiz, onShowSocialModal }: QuizCategoryCardProps) => {
+const QuizCategoryCard = ({ category, onStartChallenge }: QuizCategoryCardProps) => {
   const isKarimen = category === 'Karimen';
   const title = isKarimen ? 'Provisional License (Karimen)' : 'Full License (HonMen)';
   const description = isKarimen 
@@ -43,35 +41,44 @@ const QuizCategoryCard = ({ category, hasSharedSocial, onStartQuiz, onShowSocial
           {description}
         </p>
         
-        <div className="bg-green-50 p-3 rounded-lg border border-green-200 mb-4">
-          <p className="text-sm text-green-800 text-center">
-            First 50 questions are free! Remaining 100 questions
-            {hasSharedSocial ? (
-              <span className="font-semibold text-green-600"> unlocked ✓</span>
-            ) : (
-              <span className="font-semibold text-blue-600"> unlock by sharing</span>
-            )}
+        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4">
+          <p className="text-sm text-blue-800 text-center font-semibold">
+            Choose your challenge type below
           </p>
         </div>
         
-        <Button 
-          onClick={() => onStartQuiz(category)}
-          className={`w-full ${buttonClass} text-sm sm:text-base lg:text-lg py-4 sm:py-5 lg:py-6`}
-        >
-          <Play className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-          <span className="truncate">Start {category} Quiz ({hasSharedSocial ? '150' : '50'} questions)</span>
-        </Button>
-        
-        {!hasSharedSocial && (
+        <div className="grid grid-cols-2 gap-2">
           <Button 
-            onClick={onShowSocialModal}
-            variant="outline"
-            className={`w-full ${outlineClass} py-3 sm:py-4 text-sm sm:text-base`}
+            onClick={() => onStartChallenge(category, 'timed')}
+            className={`${buttonClass} text-xs sm:text-sm py-3`}
           >
-            <Share2 className="w-4 h-4 mr-2" />
-            <span className="truncate">Share to Unlock All Questions</span>
+            ⏱️ Timed
           </Button>
-        )}
+          
+          <Button 
+            onClick={() => onStartChallenge(category, 'untimed')}
+            variant="outline"
+            className={`${outlineClass} text-xs sm:text-sm py-3`}
+          >
+            🎯 Untimed
+          </Button>
+          
+          <Button 
+            onClick={() => onStartChallenge(category, 'regulations')}
+            variant="outline"
+            className={`${outlineClass} text-xs sm:text-sm py-3`}
+          >
+            📋 Regulations
+          </Button>
+          
+          <Button 
+            onClick={() => onStartChallenge(category, 'signs')}
+            variant="outline"
+            className={`${outlineClass} text-xs sm:text-sm py-3`}
+          >
+            🚧 Signs
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

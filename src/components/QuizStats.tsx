@@ -2,11 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 
-interface QuizStatsProps {
-  hasSharedSocial: boolean;
-}
-
-const QuizStats = ({ hasSharedSocial }: QuizStatsProps) => {
+const QuizStats = () => {
   return (
     <Card className="bg-white/50 backdrop-blur-sm mb-8">
       <CardContent className="py-8">
@@ -20,7 +16,7 @@ const QuizStats = ({ hasSharedSocial }: QuizStatsProps) => {
             <div className="text-gray-600">Full License Questions</div>
           </div>
           <div>
-            <div className="text-3xl font-bold text-purple-600 mb-2">{hasSharedSocial ? '300' : '100'}</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">300</div>
             <div className="text-gray-600">Available Questions</div>
           </div>
           <div>

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, BookOpen } from 'lucide-react';
 import QuestionCard from '@/components/QuestionCard';
-import SocialSharingModal from '@/components/SocialSharingModal';
+
 import UserProgress from '@/components/UserProgress';
 import QuizStats from '@/components/QuizStats';
 import QuizCategoryCard from '@/components/QuizCategoryCard';
@@ -17,57 +17,36 @@ const Index = () => {
   const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'progress'>('menu');
   const [questions, setQuestions] = useState<Question[]>(generateAllQuestions());
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
-  const [showSocialModal, setShowSocialModal] = useState(false);
-  const [hasSharedSocial, setHasSharedSocial] = useState(false);
   const { updateProgress } = useCacheProgress();
 
-  // Check if user has shared on social media
-  useEffect(() => {
-    const shared = localStorage.getItem('social_shared');
-    setHasSharedSocial(shared === 'true');
-  }, []);
 
-  const startQuiz = (category?: 'Karimen' | 'HonMen' | 'all', questionCount?: number) => {
-    let quizQuestions = [...questions];
+  const startChallenge = (category: 'Karimen' | 'HonMen', challenge: 'timed' | 'untimed' | 'regulations' | 'signs') => {
+    let quizQuestions = questions.filter(q => q.category === category);
     
-    if (category && category !== 'all') {
-      quizQuestions = questions.filter(q => q.category === category);
+    // Randomize and select questions based on challenge type
+    quizQuestions = quizQuestions.sort(() => Math.random() - 0.5);
+    
+    // Limit questions for different challenge types
+    let questionCount = 20; // Default for most challenges
+    if (challenge === 'timed') {
+      questionCount = 30; // More questions for timed challenge
     }
     
-    // Filter premium questions if user hasn't shared
-    if (!hasSharedSocial) {
-      quizQuestions = quizQuestions.filter(q => !q.is_premium);
-    }
-    
-    if (questionCount) {
-      quizQuestions = quizQuestions.sort(() => Math.random() - 0.5).slice(0, questionCount);
-    }
-    
-    // Check if trying to access premium questions
-    if (!hasSharedSocial && questions.filter(q => q.category === category).length > 50) {
-      const availableQuestions = quizQuestions.length;
-      if (availableQuestions < 50 && category !== 'all') {
-        setShowSocialModal(true);
-        return;
-      }
-    }
+    quizQuestions = quizQuestions.slice(0, questionCount);
     
     const session: QuizSession = {
       questions: quizQuestions,
       currentQuestionIndex: 0,
       score: 0,
       totalQuestions: quizQuestions.length,
-      answeredQuestions: []
+      answeredQuestions: [],
+      challengeType: challenge
     };
     
     setQuizSession(session);
     setCurrentView('quiz');
   };
 
-  const handleSocialShare = () => {
-    setHasSharedSocial(true);
-    localStorage.setItem('social_shared', 'true');
-  };
 
   const updateQuizSession = (updatedSession: QuizSession) => {
     setQuizSession(updatedSession);
@@ -175,19 +154,15 @@ const Index = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <QuizCategoryCard
             category="Karimen"
-            hasSharedSocial={hasSharedSocial}
-            onStartQuiz={startQuiz}
-            onShowSocialModal={() => setShowSocialModal(true)}
+            onStartChallenge={startChallenge}
           />
           <QuizCategoryCard
             category="HonMen"
-            hasSharedSocial={hasSharedSocial}
-            onStartQuiz={startQuiz}
-            onShowSocialModal={() => setShowSocialModal(true)}
+            onStartChallenge={startChallenge}
           />
         </div>
 
-        <QuizStats hasSharedSocial={hasSharedSocial} />
+        <QuizStats />
 
         {/* Footer */}
         <div className="text-center py-6 sm:py-8 border-t border-white/20 mt-8">
@@ -199,12 +174,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Social Sharing Modal */}
-      <SocialSharingModal
-        isOpen={showSocialModal}
-        onClose={() => setShowSocialModal(false)}
-        onShareComplete={handleSocialShare}
-      />
     </div>
   );
 };
