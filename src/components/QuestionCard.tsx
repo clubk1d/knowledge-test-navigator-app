@@ -87,10 +87,12 @@ const QuestionCard = ({ question, onAnswer, quizSession, onQuizComplete }: Quest
             <Badge variant="outline" className="text-xs sm:text-sm">
               {question.category}
             </Badge>
-            <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
-              <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>{formatTime(timeSpent)}</span>
-            </div>
+            {quizSession.challengeType === 'timed' && (
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span>{formatTime(timeSpent)}</span>
+              </div>
+            )}
           </div>
 
           {/* Question Image */}

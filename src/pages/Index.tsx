@@ -103,10 +103,10 @@ const Index = () => {
             <div className="space-y-2">
               <div className="flex justify-between text-xs sm:text-sm text-gray-600">
                 <span>Question {quizSession.currentQuestionIndex + 1} of {quizSession.totalQuestions}</span>
-                <span>{Math.round(((quizSession.currentQuestionIndex + 1) / quizSession.totalQuestions) * 100)}% Complete</span>
+                <span>Correct: {quizSession.score}/{quizSession.answeredQuestions.length} ({quizSession.answeredQuestions.length > 0 ? Math.round((quizSession.score / quizSession.answeredQuestions.length) * 100) : 0}%)</span>
               </div>
               <Progress 
-                value={((quizSession.currentQuestionIndex + 1) / quizSession.totalQuestions) * 100} 
+                value={quizSession.answeredQuestions.length > 0 ? (quizSession.score / quizSession.answeredQuestions.length) * 100 : 0} 
                 className="h-2 sm:h-3"
               />
             </div>
