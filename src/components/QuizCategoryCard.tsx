@@ -6,7 +6,7 @@ import { BookOpen, Trophy } from 'lucide-react';
 
 interface QuizCategoryCardProps {
   category: 'Karimen' | 'HonMen';
-  onStartChallenge: (category: 'Karimen' | 'HonMen', challenge: 'timed' | 'untimed' | 'regulations' | 'signs') => void;
+  onStartChallenge: (category: 'Karimen' | 'HonMen', challenge: 'timed' | 'untimed' | 'regulations' | 'signs' | 'normal', setNumber?: number) => void;
 }
 
 const QuizCategoryCard = ({ category, onStartChallenge }: QuizCategoryCardProps) => {
@@ -47,37 +47,47 @@ const QuizCategoryCard = ({ category, onStartChallenge }: QuizCategoryCardProps)
           </p>
         </div>
         
-        <div className="grid grid-cols-2 gap-2">
+        <div className="space-y-2">
           <Button 
-            onClick={() => onStartChallenge(category, 'timed')}
-            className={`${buttonClass} text-xs sm:text-sm py-3`}
+            onClick={() => onStartChallenge(category, 'normal')}
+            className={`${buttonClass} text-sm py-3 w-full`}
           >
-            ⏱️ Timed
+            📚 Normal Test (Sets)
           </Button>
           
-          <Button 
-            onClick={() => onStartChallenge(category, 'untimed')}
-            variant="outline"
-            className={`${outlineClass} text-xs sm:text-sm py-3`}
-          >
-            🎯 Untimed
-          </Button>
-          
-          <Button 
-            onClick={() => onStartChallenge(category, 'regulations')}
-            variant="outline"
-            className={`${outlineClass} text-xs sm:text-sm py-3`}
-          >
-            📋 Regulations
-          </Button>
-          
-          <Button 
-            onClick={() => onStartChallenge(category, 'signs')}
-            variant="outline"
-            className={`${outlineClass} text-xs sm:text-sm py-3`}
-          >
-            🚧 Signs
-          </Button>
+          <div className="grid grid-cols-2 gap-2">
+            <Button 
+              onClick={() => onStartChallenge(category, 'timed')}
+              variant="outline"
+              className={`${outlineClass} text-xs sm:text-sm py-3`}
+            >
+              ⏱️ Timed
+            </Button>
+            
+            <Button 
+              onClick={() => onStartChallenge(category, 'untimed')}
+              variant="outline"
+              className={`${outlineClass} text-xs sm:text-sm py-3`}
+            >
+              🎯 Untimed
+            </Button>
+            
+            <Button 
+              onClick={() => onStartChallenge(category, 'regulations')}
+              variant="outline"
+              className={`${outlineClass} text-xs sm:text-sm py-3`}
+            >
+              📋 Regulations
+            </Button>
+            
+            <Button 
+              onClick={() => onStartChallenge(category, 'signs')}
+              variant="outline"
+              className={`${outlineClass} text-xs sm:text-sm py-3`}
+            >
+              🚧 Signs
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

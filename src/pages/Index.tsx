@@ -1,52 +1,94 @@
-
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Trophy, BookOpen } from 'lucide-react';
+import QuizCategoryCard from '@/components/QuizCategoryCard';
 import QuestionCard from '@/components/QuestionCard';
-
 import UserProgress from '@/components/UserProgress';
 import QuizStats from '@/components/QuizStats';
-import QuizCategoryCard from '@/components/QuizCategoryCard';
+import SetSelector from '@/components/SetSelector';
 import { Question, QuizSession } from '@/types/quiz';
-import { useCacheProgress } from '@/hooks/useCacheProgress';
 import { generateAllQuestions } from '@/utils/questionGenerator';
+import { useCacheProgress } from '@/hooks/useCacheProgress';
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'progress'>('menu');
-  const [questions, setQuestions] = useState<Question[]>(generateAllQuestions());
+  const [currentView, setCurrentView] = useState<'menu' | 'quiz' | 'progress' | 'setSelector'>('menu');
   const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<'Karimen' | 'HonMen' | null>(null);
   const { updateProgress } = useCacheProgress();
 
+  const allQuestions = generateAllQuestions();
 
-  const startChallenge = (category: 'Karimen' | 'HonMen', challenge: 'timed' | 'untimed' | 'regulations' | 'signs') => {
-    let quizQuestions = questions.filter(q => q.category === category);
+  const startChallenge = (category: 'Karimen' | 'HonMen', challenge: 'timed' | 'untimed' | 'regulations' | 'signs' | 'normal', setNumber?: number) => {
+    if (challenge === 'normal') {
+      setSelectedCategory(category);
+      setCurrentView('setSelector');
+      return;
+    }
+
+    const categoryQuestions = allQuestions.filter(q => q.category === category);
     
-    // Randomize and select questions based on challenge type
-    quizQuestions = quizQuestions.sort(() => Math.random() - 0.5);
+    let questionsToUse: Question[];
+    let questionCount: number;
     
-    // Limit questions for different challenge types
-    let questionCount = 20; // Default for most challenges
-    if (challenge === 'timed') {
-      questionCount = 30; // More questions for timed challenge
+    switch (challenge) {
+      case 'timed':
+        questionCount = 30;
+        break;
+      case 'untimed':
+        questionCount = 50;
+        break;
+      case 'regulations':
+        questionCount = 25;
+        break;
+      case 'signs':
+        questionCount = 20;
+        break;
+      default:
+        questionCount = 30;
     }
     
-    quizQuestions = quizQuestions.slice(0, questionCount);
-    
-    const session: QuizSession = {
-      questions: quizQuestions,
+    // Shuffle and slice questions
+    const shuffled = [...categoryQuestions].sort(() => Math.random() - 0.5);
+    questionsToUse = shuffled.slice(0, questionCount);
+
+    const newSession: QuizSession = {
+      questions: questionsToUse,
       currentQuestionIndex: 0,
       score: 0,
-      totalQuestions: quizQuestions.length,
+      totalQuestions: questionsToUse.length,
       answeredQuestions: [],
       challengeType: challenge
     };
-    
-    setQuizSession(session);
+
+    setQuizSession(newSession);
     setCurrentView('quiz');
   };
 
+  const startNormalTest = (setNumber: number) => {
+    if (!selectedCategory) return;
+    
+    const categoryQuestions = allQuestions.filter(q => q.category === selectedCategory);
+    const questionsPerSet = selectedCategory === 'Karimen' ? 50 : 100;
+    const startIndex = (setNumber - 1) * questionsPerSet;
+    const endIndex = Math.min(startIndex + questionsPerSet, categoryQuestions.length);
+    
+    const questionsToUse = categoryQuestions.slice(startIndex, endIndex);
+
+    const newSession: QuizSession = {
+      questions: questionsToUse,
+      currentQuestionIndex: 0,
+      score: 0,
+      totalQuestions: questionsToUse.length,
+      answeredQuestions: [],
+      challengeType: 'normal',
+      setNumber
+    };
+
+    setQuizSession(newSession);
+    setCurrentView('quiz');
+  };
 
   const updateQuizSession = (updatedSession: QuizSession) => {
     setQuizSession(updatedSession);
@@ -81,7 +123,32 @@ const Index = () => {
     );
   }
 
+  if (currentView === 'setSelector' && selectedCategory) {
+    const categoryQuestions = allQuestions.filter(q => q.category === selectedCategory);
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        <div className="max-w-6xl mx-auto px-2 sm:px-4">
+          <div className="py-8">
+            <SetSelector
+              category={selectedCategory}
+              totalQuestions={categoryQuestions.length}
+              onSelectSet={startNormalTest}
+              onBack={() => {
+                setCurrentView('menu');
+                setSelectedCategory(null);
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (currentView === 'quiz' && quizSession) {
+    const title = quizSession.challengeType === 'normal' && quizSession.setNumber 
+      ? `${quizSession.questions[0]?.category} - Set ${quizSession.setNumber}`
+      : `${quizSession.challengeType?.charAt(0).toUpperCase()}${quizSession.challengeType?.slice(1)} Challenge`;
+      
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-2 sm:p-4">
         <div className="max-w-4xl mx-auto px-2 sm:px-0">
@@ -95,10 +162,15 @@ const Index = () => {
               >
                 End Quiz
               </Button>
-              <Badge variant="secondary" className="text-sm sm:text-base lg:text-lg px-3 py-1 sm:px-4 sm:py-2 w-fit self-start sm:self-auto">
-                <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                Score: {quizSession.score}/{quizSession.answeredQuestions.length}
-              </Badge>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-1 sm:space-y-0 sm:space-x-3">
+                <Badge variant="outline" className="text-xs sm:text-sm">
+                  {title}
+                </Badge>
+                <Badge variant="secondary" className="text-sm sm:text-base lg:text-lg px-3 py-1 sm:px-4 sm:py-2 w-fit">
+                  <Trophy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                  Score: {quizSession.score}/{quizSession.answeredQuestions.length}
+                </Badge>
+              </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-xs sm:text-sm text-gray-600">
@@ -173,7 +245,6 @@ const Index = () => {
           </p>
         </div>
       </div>
-
     </div>
   );
 };
